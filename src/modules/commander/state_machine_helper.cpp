@@ -341,8 +341,9 @@ main_state_transition(const vehicle_status_s &status, const main_state_t new_mai
 
 	case commander_state_s::MAIN_STATE_OFFBOARD:
 
-		/* need offboard signal */
-		if (!status_flags.offboard_control_signal_lost) {
+		/* need offboard signal and global position */
+		if (!status_flags.offboard_control_signal_lost &&
+		    status_flags.condition_global_position_valid) {
 
 			ret = TRANSITION_CHANGED;
 		}
@@ -784,6 +785,10 @@ bool set_nav_state(vehicle_status_s *status, actuator_armed_s *armed, commander_
 				}
 			}
 
+		} else if (is_armed
+		            && check_invalid_pos_nav_state(status, old_failsafe, mavlink_log_pub, status_flags, !(posctl_nav_loss_act == 1),
+		                   !status->is_rotary_wing)) {
+			// nothing to do - everything done in check_invalid_pos_nav_state
 		} else {
 			status->nav_state = vehicle_status_s::NAVIGATION_STATE_OFFBOARD;
 		}
